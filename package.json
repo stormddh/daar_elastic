@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@elastic/elasticsearch": "^7.15.0"
+  },
+  "name": "daar_elastic",
+  "version": "1.0.0",
+  "description": "DAAR 2021 - Project 2 - Elasticsearch",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Duc Huy Do, Patryk Fussek",
+  "license": "ISC"
+}
