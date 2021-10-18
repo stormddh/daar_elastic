@@ -24,10 +24,10 @@
 
 ### API
 GET - get title
-> http://localhost:3000/api/articles/<title>
+> http://localhost:3000/api/articles/\<title\>
 
 POST
 > http://localhost:3000/api/articles
 
 GET - search article
-> http://localhost:3000/api/articles?search=<keyword>
+> http://localhost:3000/api/articles?search=\<keyword\>
