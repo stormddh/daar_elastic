@@ -6,7 +6,9 @@
   "version": "1.0.0",
   "description": "DAAR 2021 - Project 2 - Elasticsearch",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.13"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
