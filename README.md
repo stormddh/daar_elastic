@@ -1,7 +1,9 @@
-# DAAR Project 2 - Elastic search 
+# DAAR Project 2 - Elastic search
 ### Do Duc Huy, Patryk Fussek
 ### Fall semester 2021
 ---
+### Setup
+
 **Requirements**:
 - nodejs
 - express
@@ -19,3 +21,13 @@
 0. Install docker and docker-compose
 1. `cd docker`
 2. `docker-compose up -d`
+
+### API
+GET - get title
+> http://localhost:3000/api/articles/<title>
+
+POST
+> http://localhost:3000/api/articles
+
+GET - search article
+> http://localhost:3000/api/articles?search=<keyword>
