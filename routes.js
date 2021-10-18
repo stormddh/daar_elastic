@@ -24,16 +24,16 @@ elasticClient.ping(
     }
 );
 
-async function run () {
+async function import_data () {
     await elasticClient.indices.create({
       index: 'example_index',
       body: {
         mappings: {
           properties: {
-            title: { type: 'text' },
+            title: { type: 'keyword' },
             viewed_time: { type: 'integer' },
             words_number: { type: 'integer' },
-            author: { type: 'text' },
+            author: { type: 'keyword' },
             content: { type: 'text' }, 
           }
         }
@@ -68,11 +68,10 @@ async function run () {
       console.log(erroredDocuments)
     }
   
-    const { body: count } = await elasticClient.count({ index: 'example_index' })
-    console.log(count)
+    const { body: count } = await elasticClient.count({ index: 'example_index' });
 }
 
-run().catch(console.log)
+import_data().catch(console.log)
 
 router.use((req, res, next) => {
     elasticClient.index({
@@ -92,6 +91,9 @@ router.use((req, res, next) => {
 });
 
 router.post('/articles', bodyParser, (req, res) => {
+    return res.json({
+        msg: "Hello, this API",
+    });
     elasticClient.index({
         index: 'example_index',
         body: req.body,
@@ -112,8 +114,11 @@ router.post('/articles', bodyParser, (req, res) => {
 router.get('/articles/:title', (req, res) => {
     let query = {
         index: 'example_index',
-        id: req.params.title
+        title: req.params.title
     }
+    return res.json({
+        msg: "Hello, this API",
+    });
     elasticClient.get(query)
     .then(resp => {
         if(!resp) {
@@ -138,20 +143,28 @@ router.get('/articles', (req, res) => {
     let query = {
         index: 'example_index',
     }
-    if (req.query.search) query.q = req.query.search;
-    //console.log(query);
-    elasticClient.search(query)
-    .then(resp => {
+    if (req.query.search) {
+        query.q = "(${req.query.search})";
+        return res.json({
+            msg: "Hello, this API",
+        });
+        elasticClient.search(query)
+        .then(resp => {
+            return res.status(200).json({
+                articles: resp.hits.hits
+            });
+        })
+        .catch(err => {
+            return res.status(500).json({
+                msg: 'SEARCH: Error',
+                err
+            });
+        });
+    } else {
         return res.status(200).json({
-            articles: resp.hits.hits
+            msg: 'No result',
         });
-    })
-    .catch(err => {
-        return res.status(500).json({
-            msg: 'SEARCH: Error',
-            err
-        });
-    });
+    }
 });
 
 module.exports = router;
