@@ -92,7 +92,7 @@ router.use((req, res, next) => {
 
 router.post('/articles', bodyParser, (req, res) => {
     return res.json({
-        msg: "Hello, this API",
+        msg: "Hello, this API responds to POST request",
         data: req.body,
     });
     elasticClient.index({
@@ -118,7 +118,7 @@ router.get('/articles/:title', (req, res) => {
         title: req.params.title
     }
     return res.json({
-        msg: "Hello, this API",
+        msg: "Hello, this API is responding for GET request, your query was: " + this.title,
     });
     elasticClient.get(query)
     .then(resp => {
@@ -147,7 +147,7 @@ router.get('/articles', (req, res) => {
     if (req.query.search) {
         query.q = "(${req.query.search})";
         return res.json({
-            msg: "Hello, this API",
+            msg: "Hello, this API is responding for GET request",
         });
         elasticClient.search(query)
         .then(resp => {
