@@ -13,8 +13,11 @@
 1. `git clone <this project>`
 2. `yarn`
 
-**Run app**:
-`npm run dev`
+**Run backend**:
+in root directory, run `npm run dev` in terminal
+
+**Run frontend**:
+in 'elastic_front' directory, run 'vue-cli-service serve' in terminal
 
 **Run ES (docker)**:
 
