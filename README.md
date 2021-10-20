@@ -14,10 +14,12 @@
 2. `yarn`
 
 **Run backend**:
+
 in root directory, run `npm run dev` in terminal
 
 **Run frontend**:
-in 'elastic_front' directory, run 'vue-cli-service serve' in terminal
+
+in 'elastic_front' directory, run `vue-cli-service serve` in terminal
 
 **Run ES (docker)**:
 
