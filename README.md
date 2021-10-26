@@ -19,7 +19,7 @@ in root directory, first install the dependencies by `yarn install` and then run
 
 **Run frontend**:
 
-in 'elastic_front' directory, first install the dependencies by `yarn install`, then run `vue-cli-service serve` in terminal. Make sure that yarn is the package manager for this folder as well
+in 'elastic_front' directory, first install the dependencies by `yarn install`, then run `yarn vue-cli-service serve` in terminal. Make sure that yarn is the package manager for this folder as well
 
 **Run ES (docker)**:
 
