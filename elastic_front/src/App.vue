@@ -9,13 +9,6 @@
       <input class="form" type="text" v-model="lastName"/>
     </div>
     <div>
-      <h2>Known languages:</h2>
-      <input type="checkbox" id="Java" value="Java">Java<br>
-      <input type="checkbox" id="Python" value="Python">Python<br>
-      <input type="checkbox" id="PHP" value="PHP">PHP<br>
-      <input type="checkbox" id="Ruby" value="Ruby">Ruby<br>
-    </div>
-    <div>
       <h2>CV file</h2>
       <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
     </div>
@@ -35,6 +28,7 @@
 
 <script>
 import axios from 'axios';
+import FormData from 'form-data';
 
 export default {
   name: 'App',
@@ -44,9 +38,7 @@ export default {
       firstName: '',
       lastName: '',
       myFile: '',
-      query: '',
-      allLanguages: ['Java', 'Python', 'PHP', 'Ruby'],
-      knownLanguages: []
+      query: ''
     }
   },
   methods: {
@@ -55,34 +47,27 @@ export default {
       this.myFile = this.$refs.file.files[0];
     },
     async submitApplication() {
+      var data = new FormData();
+      data.append('firstName', this.firstName);
+      data.append('lastName', this.lastName);
+      data.append('cvFile', this.myFile);
 
-      for (let i in this.allLanguages)
-        if (document.getElementById(this.allLanguages[i]).checked) {
-          this.knownLanguages.push(this.allLanguages[i])
-        }
-      let formData = new FormData();
-      formData.append('file', this.myFile);
+      var config = {
+        method: 'post',
+        url: '/api/articles/',
+        data: data
+      };
 
-      axios.post('/api/articles',
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            },
-            body: {
-              firstName: this.firstName,
-              lastName: this.lastName,
-              knownLanguages: this.knownLanguages,
-              cv: formData
-            }
-          }
-      ).then(res =>
-          console.log(res.data))
-          .catch(function () {
-            console.log('FAILURE!!');
+      axios(config)
+          .then(function (response) {
+            console.log(JSON.stringify(response.data));
+          })
+          .catch(function (error) {
+            console.log(error);
           });
     },
     queryDatabase() {
-    //todo  // here in the GET URL will come the this.query variable from the input form, f.ex "Java"
+      //todo  // here in the GET URL will come the this.query variable from the input form, f.ex "Java"
       axios.get('/api/articles/' + this.query,
           {
             headers: {
@@ -126,14 +111,16 @@ export default {
   display: inline-block;
   font-size: 16px;
 }
-.search-button{
+
+.search-button {
   padding: 9px 25px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
 }
-.form{
+
+.form {
   font-size: 24px;
   width: 50%;
   padding: 12px 20px;
@@ -144,6 +131,7 @@ export default {
   background-position: 10px 10px;
   background-repeat: no-repeat;
 }
+
 .container {
   max-width: 700px;
   margin: 30px auto;
