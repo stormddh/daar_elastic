@@ -10,7 +10,8 @@
     </div>
     <div>
       <h2>CV file</h2>
-      <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
+      <input type="file" class="upload" id="file" accept=
+          "application/msword, application/pdf" ref="file" v-on:change="handleFileUpload()"/>
     </div>
     <div>
       <h2>Submit</h2>
@@ -44,27 +45,37 @@ export default {
   methods: {
 
     async handleFileUpload() {
-      this.myFile = this.$refs.file.files[0];
+      if (this.$refs.file.files[0].size/1024/1024 < 5){
+        this.myFile = this.$refs.file.files[0];
+      } else {
+        alert('Maximum file size is 5 MB! Your file size is ' + (Math.round(this.$refs.file.files[0].size/1024/1024 * 100) / 100) + "MB");
+        location.reload();
+      }
     },
     async submitApplication() {
-      var data = new FormData();
-      data.append('firstName', this.firstName);
-      data.append('lastName', this.lastName);
-      data.append('cvFile', this.myFile);
+      if (this.myFile){
+        var data = new FormData();
+        data.append('firstName', this.firstName);
+        data.append('lastName', this.lastName);
+        data.append('cvFile', this.myFile);
 
-      var config = {
-        method: 'post',
-        url: '/api/articles/',
-        data: data
-      };
+        var config = {
+          method: 'post',
+          url: '/api/articles/',
+          data: data
+        };
 
-      axios(config)
-          .then(function (response) {
-            console.log(JSON.stringify(response.data));
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+        axios(config)
+            .then(function (response) {
+              console.log(JSON.stringify(response.data));
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+      } else {
+        window.alert("Please select a file to upload !");
+      }
+
     },
     queryDatabase() {
       //todo  // here in the GET URL will come the this.query variable from the input form, f.ex "Java"
@@ -141,5 +152,20 @@ export default {
   padding: 60px;
   border-radius: 5px;
   box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+}
+.upload {
+  border: 1px solid #ccc;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 16px;
+  align-content: center;
+  width: 50%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  transition: width 0.4s ease-in-out;
+  background-color: white;
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
 }
 </style>
