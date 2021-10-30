@@ -6,7 +6,6 @@ const multer = require('multer')
 const fs = require('fs'),
     PDFParser = require("pdf2json");
 
-const pdfParser = new PDFParser(this,1);
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -17,12 +16,12 @@ const storage = multer.diskStorage({
     }
 });
 
-let upload = multer({ storage: storage});
+let upload = multer({storage: storage});
 
 
 const bodyParser = require('body-parser').json();
 
-const { Client } = require('@elastic/elasticsearch');
+const {Client} = require('@elastic/elasticsearch');
 const elasticClient = new Client({
     node: 'http://localhost:9200',
 });
@@ -109,12 +108,17 @@ router.use((req, res, next) => {
 
 router.post('/articles', upload.single("cvFile"), (req, res) => {
     //parse PDF to raw .txt file
-    pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError) );
+    const pdfParser = new PDFParser(this, 1);
+    pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
     pdfParser.on("pdfParser_dataReady", pdfData => {
         let fileName = req.body.firstName + "_" + req.body.lastName + "_" + "CV_parsed_raw.content.txt"
-        fs.writeFile("uploads/" + fileName, pdfParser.getRawTextContent(), ()=>{console.log("Done.");});
+        fs.writeFile("uploads/" + fileName, pdfParser.getRawTextContent(), () => {
+            console.log(fileName + " file upload done.");
+        });
     });
     pdfParser.loadPDF(req.file.path);
+
+    cleanUpDirectory(req).then(r => console.log("Directory cleaned."))
 
     return res.json({
         msg: "Your CV has been uploaded to the database! ",
@@ -143,7 +147,7 @@ router.get('/articles/:title', (req, res) => {
         title: req.params.title
     }
     return res.json({
-        msg: "Hello, this API is responding for GET request, your query was: " + this.title,
+        msg: "Hello, this API is responding for GET request, your query was: " + req.params.title,
     });
     elasticClient.get(query)
     .then(resp => {
@@ -192,5 +196,18 @@ router.get('/articles', (req, res) => {
         });
     }
 });
+
+async function cleanUpDirectory(req) {
+    setTimeout(function () {
+        const fs = require("fs")
+        const pathToFile = req.file.path
+
+        fs.unlink(pathToFile, function (err) {
+            if (err) {
+                throw err
+            }
+        })
+    }, 100);
+}
 
 module.exports = router;
