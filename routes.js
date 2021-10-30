@@ -146,8 +146,11 @@ router.get('/articles/:title', (req, res) => {
         index: 'example_index',
         title: req.params.title
     }
+    let applicants = [ "Patryk Fussek", "Elvis Presley", "Tony Vlcek", "Adrian Bucka", "Elsa Lopez", "Carlo Segat", "Duc Huy Do"]
+
     return res.json({
-        msg: "Hello, this API is responding for GET request, your query was: " + req.params.title,
+        msg: "Hello, this is a list of applicants for the given query: " + req.params.title,
+        applicants: applicants
     });
     elasticClient.get(query)
     .then(resp => {

@@ -20,8 +20,19 @@
 
     <div>
       <h2>Search the CV database:</h2>
+      <div>To browse through the database of resumes, type in a desired skill or technology and a list of adequate
+        applicants will be shown. F.ex "Java" or "Git"
+      </div>
       <input class="form" type="text" v-model="query"/>
       <input class="search-button" type="submit" value="Search!" v-on:click="queryDatabase"/>
+    </div>
+    <h2 v-if="showQuery"> List of applicants for given query: {{query}}</h2>
+
+    <div class="list-container">
+      <div class="list-entry" v-for="applicant in applicants" :key="applicant">
+        <img class="avatar" :src="avatar">
+        {{ applicant }}
+      </div>
     </div>
 
   </div>
@@ -39,21 +50,24 @@ export default {
       firstName: '',
       lastName: '',
       myFile: '',
-      query: ''
+      query: '',
+      applicants: [],
+      avatar: require('./assets/default-avatar.png'),
+      showQuery: false
     }
   },
   methods: {
 
     async handleFileUpload() {
-      if (this.$refs.file.files[0].size/1024/1024 < 5){
+      if (this.$refs.file.files[0].size / 1024 / 1024 < 5) {
         this.myFile = this.$refs.file.files[0];
       } else {
-        alert('Maximum file size is 5 MB! Your file size is ' + (Math.round(this.$refs.file.files[0].size/1024/1024 * 100) / 100) + "MB");
+        alert('Maximum file size is 5 MB! Your file size is ' + (Math.round(this.$refs.file.files[0].size / 1024 / 1024 * 100) / 100) + "MB");
         location.reload();
       }
     },
     async submitApplication() {
-      if (this.myFile){
+      if (this.myFile) {
         var data = new FormData();
         data.append('firstName', this.firstName);
         data.append('lastName', this.lastName);
@@ -85,8 +99,15 @@ export default {
               'Content-Type': 'multipart/form-data'
             }
           }
-      ).then(res =>
-          console.log(res.data))
+      ).then(res => {
+        this.showQuery = true
+        this.applicants = []
+        let json = JSON.parse(JSON.stringify(res.data.applicants))
+        for (let entry in json) {
+          this.applicants.push(json[entry])
+        }
+        console.log(res.data)
+      })
           .catch(function () {
             console.log('FAILURE!!');
           });
@@ -152,6 +173,29 @@ export default {
   padding: 60px;
   border-radius: 5px;
   box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+}
+.list-container {
+  max-width: 700px;
+  margin: 30px auto;
+  overflow: auto;
+  text-align: center;
+  padding: 60px;
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+.list-entry {
+  width: 50%;
+  margin: 10px auto;
+  overflow: auto;
+  text-align: center;
+  padding: 15px;
+  border-radius: 2px;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
+.avatar{
+  max-width:8%;
+  max-height:8%;
+
 }
 .upload {
   border: 1px solid #ccc;
