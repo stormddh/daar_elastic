@@ -26,6 +26,7 @@ in 'elastic_front' directory, first install the dependencies by `yarn install`, 
 0. Install docker and docker-compose
 1. `cd docker`
 2. `docker-compose up -d`
+3. it might be necessary to change your system memory settings: `sysctl -w vm.max_map_count=262144`
 
 ### API
 GET - get title

@@ -40,54 +40,23 @@ elasticClient.ping(
     }
 );
 
-async function import_data () {
+async function setup_index () {
     await elasticClient.indices.create({
-      index: 'example_index',
+      index: 'cv_index',
       body: {
         mappings: {
           properties: {
-            title: { type: 'keyword' },
-            viewed_time: { type: 'integer' },
-            words_number: { type: 'integer' },
-            author: { type: 'keyword' },
-            content: { type: 'text' }, 
+            first_name: { type: 'keyword' },
+            last_name: { type: 'keyword' },
+            file_name: { type: 'text' },
+            content: { type: 'text' },
           }
         }
       }
     }, { ignore: [400] })
-  
-    const articles = require('./articles.json'); 
-  
-    const body = articles.flatMap(doc => [{ index: { _index: 'example_index' } }, doc])
-  
-    const { body: bulkResponse } = await elasticClient.bulk({ refresh: true, body })
-  
-    if (bulkResponse.errors) {
-      const erroredDocuments = []
-      // The items array has the same order of the dataset we just indexed.
-      // The presence of the `error` key indicates that the operation
-      // that we did for the document has failed.
-      bulkResponse.items.forEach((action, i) => {
-        const operation = Object.keys(action)[0]
-        if (action[operation].error) {
-          erroredDocuments.push({
-            // If the status is 429 it means that you can retry the document,
-            // otherwise it's very likely a mapping error, and you should
-            // fix the document before to try it again.
-            status: action[operation].status,
-            error: action[operation].error,
-            operation: body[i * 2],
-            document: body[i * 2 + 1]
-          })
-        }
-      })
-      console.log(erroredDocuments)
-    }
-  
-    const { body: count } = await elasticClient.count({ index: 'example_index' });
 }
 
-import_data().catch(console.log)
+setup_index().catch(console.log)
 
 router.use((req, res, next) => {
     elasticClient.index({
@@ -106,91 +75,85 @@ router.use((req, res, next) => {
     next();
 });
 
-router.post('/articles', upload.single("cvFile"), (req, res) => {
+router.post('/cv', upload.single("cvFile"), (req, res) => {
     //parse PDF to raw .txt file
     const pdfParser = new PDFParser(this, 1);
-    pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
-    pdfParser.on("pdfParser_dataReady", pdfData => {
-        let fileName = req.body.firstName + "_" + req.body.lastName + "_" + "CV_parsed_raw.content.txt"
-        fs.writeFile("uploads/" + fileName, pdfParser.getRawTextContent(), () => {
-            console.log(fileName + " file upload done.");
+    let first_name = req.body.firstName;
+    let last_name = req.body.lastName;
+    let file_name = first_name + "_" + last_name + "_" + "CV_parsed_raw.content.txt"
+
+    pdfParser.on("pdfParser_dataError", errData => {
+        console.error(errData.parserError);
+    })
+    .on("pdfParser_dataReady", pdfData => {
+        let cv_content = pdfParser.getRawTextContent();
+        let body = {
+            first_name: first_name,
+            last_name: last_name,
+            file_name: file_name,
+            content: cv_content,
+        }
+
+        fs.writeFile("uploads/" + file_name, cv_content, () => {
+            console.log(file_name + " file upload done.");
+        });
+
+        elasticClient.index({
+            index: 'cv_index',
+            body: body,
+        })
+        .then(resp => {
+            return res.status(200).json({
+                msg: "Your CV has been uploaded to the database! ",
+            });
+        })
+        .catch(err => {
+            return res.status(500).json({
+                msg: 'Error',
+                err
+            });
         });
     });
     pdfParser.loadPDF(req.file.path);
 
-    cleanUpDirectory(req).then(r => console.log("Directory cleaned."))
-
-    return res.json({
-        msg: "Your CV has been uploaded to the database! ",
-        data: req.file,
-    });
-    elasticClient.index({
-        index: 'example_index',
-        body: req.body,
-    })
-    .then(resp => {
-        return res.status(200).json({
-            msg: 'article added',
-        });
-    })
-    .catch(err => {
-        return res.status(500).json({
-            msg: 'Error',
-            err
-        });
-    });
+    //cleanUpDirectory(req).then(r => console.log("Directory cleaned."))
 });
 
-router.get('/articles/:title', (req, res) => {
-    let query = {
-        index: 'example_index',
-        title: req.params.title
-    }
-    let applicants = [ "Patryk Fussek", "Elvis Presley", "Tony Vlcek", "Adrian Bucka", "Elsa Lopez", "Carlo Segat", "Duc Huy Do"]
+router.get('/cv/:file', (req, res) => {
+    let file_name = req.params.file
+    let cv_path = "uploads/" + file_name
 
-    return res.json({
-        msg: "Hello, this is a list of applicants for the given query: " + req.params.title,
-        applicants: applicants
-    });
-    elasticClient.get(query)
-    .then(resp => {
-        if(!resp) {
-            return res.status(404).json({
-                msg: 'Not found'
-            });
-        }
-        return res.status(200).json({
-            product: resp
-        });
-    })
-    .catch(err => {
-        return res.status(500).json({
-            msg: 'Error',
-            err
-        });
-    });
+    if (fs.existsSync(cv_path)) {
+        res.contentType("application/pdf");
+        fs.createReadStream(cv_path).pipe(res)
+    } else {
+        res.status(500)
+        console.log('File not found')
+        res.send('File not found')
+    }
 });
 
-
-router.get('/articles', (req, res) => {
-    let query = {
-        index: 'example_index',
-    }
+router.get('/cv', (req, res) => {
     if (req.query.search) {
-        query.q = "(${req.query.search})";
-        return res.json({
-            msg: "Hello, this API is responding for GET request",
-        });
-        elasticClient.search(query)
+        elasticClient.search({
+            index: 'cv_index',
+            body: {
+                query: {
+                    match: {
+                        content: req.query.search,
+                    }
+                }
+            }
+        })
         .then(resp => {
             return res.status(200).json({
-                articles: resp.hits.hits
+                cv: resp.body.hits.hits
             });
         })
         .catch(err => {
             return res.status(500).json({
                 msg: 'SEARCH: Error',
-                err
+                error: err,
             });
         });
     } else {

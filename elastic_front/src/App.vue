@@ -75,7 +75,7 @@ export default {
 
         var config = {
           method: 'post',
-          url: '/api/articles/',
+          url: '/api/cv/',
           data: data
         };
 
@@ -93,7 +93,7 @@ export default {
     },
     queryDatabase() {
       //todo  // here in the GET URL will come the this.query variable from the input form, f.ex "Java"
-      axios.get('/api/articles/' + this.query,
+      axios.get('/api/cv/' + this.query,
           {
             headers: {
               'Content-Type': 'multipart/form-data'
