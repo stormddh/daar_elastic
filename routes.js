@@ -1,11 +1,8 @@
-//require('array.prototype.flatmap').shim()
-
 const express = require('express');
 const router = express.Router();
 const multer = require('multer')
 const fs = require('fs'),
     PDFParser = require("pdf2json");
-
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -17,9 +14,6 @@ const storage = multer.diskStorage({
 });
 
 let upload = multer({storage: storage});
-
-
-const bodyParser = require('body-parser').json();
 
 const {Client} = require('@elastic/elasticsearch');
 const elasticClient = new Client({
@@ -81,6 +75,7 @@ router.post('/cv', upload.single("cvFile"), (req, res) => {
     let first_name = req.body.firstName;
     let last_name = req.body.lastName;
     let file_name = first_name + "_" + last_name + "_" + "CV_parsed_raw.content.txt"
+    let pdf_name = req.file.path.split("/")[1]
 
     pdfParser.on("pdfParser_dataError", errData => {
         console.error(errData.parserError);
@@ -90,7 +85,7 @@ router.post('/cv', upload.single("cvFile"), (req, res) => {
         let body = {
             first_name: first_name,
             last_name: last_name,
-            file_name: file_name,
+            file_name: pdf_name,
             content: cv_content,
         }
 

@@ -31,7 +31,8 @@
     <div class="list-container">
       <div class="list-entry" v-for="applicant in applicants" :key="applicant">
         <img class="avatar" :src="avatar">
-        {{ applicant }}
+        {{ applicant._source.first_name }} {{ applicant._source.last_name }}
+        <a :href="'/cv/' + applicant._source.file_name">PDF</a>
       </div>
     </div>
 
@@ -93,24 +94,24 @@ export default {
     },
     queryDatabase() {
       //todo  // here in the GET URL will come the this.query variable from the input form, f.ex "Java"
-      axios.get('/api/cv/' + this.query,
+      axios.get('/api/cv?search=' + this.query,
           {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           }
       ).then(res => {
-        this.showQuery = true
-        this.applicants = []
-        let json = JSON.parse(JSON.stringify(res.data.applicants))
+        this.showQuery = true;
+        this.applicants = [];
+        let json = JSON.parse(JSON.stringify(res.data.cv));
         for (let entry in json) {
           this.applicants.push(json[entry])
         }
         console.log(res.data)
       })
-          .catch(function () {
-            console.log('FAILURE!!');
-          });
+      .catch(err => {
+        console.log(err);
+      });
     }
   }
 }
