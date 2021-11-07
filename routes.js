@@ -72,19 +72,19 @@ router.use((req, res, next) => {
 router.post('/cv', upload.single("cvFile"), (req, res) => {
     //parse PDF to raw .txt file
     const pdfParser = new PDFParser(this, 1);
-    let first_name = req.body.firstName;
-    let last_name = req.body.lastName;
-    let file_name = first_name + "_" + last_name + "_" + "CV_parsed_raw.content.txt"
-    let pdf_name = req.file.path.split("/")[1]
+    const first_name = req.body.firstName;
+    const last_name = req.body.lastName;
+    const file_name = first_name + "_" + last_name + "_" + "CV_parsed_raw.content.txt"
+    const pdf_name = req.file.path.split("/")[1]
 
     pdfParser.on("pdfParser_dataError", errData => {
         console.error(errData.parserError);
     })
-    .on("pdfParser_dataReady", pdfData => {
-        let cv_content = pdfParser.getRawTextContent();
-        let body = {
-            first_name: first_name,
-            last_name: last_name,
+    .on("pdfParser_dataReady", _ => {
+        const cv_content = pdfParser.getRawTextContent();
+        const body = {
+            first_name,
+            last_name,
             file_name: pdf_name,
             content: cv_content,
         }
@@ -115,8 +115,8 @@ router.post('/cv', upload.single("cvFile"), (req, res) => {
 });
 
 router.get('/cv/:file', (req, res) => {
-    let file_name = req.params.file
-    let cv_path = "uploads/" + file_name
+    const file_name = req.params.file
+    const cv_path = "uploads/" + file_name
 
     if (fs.existsSync(cv_path)) {
         res.contentType("application/pdf");
@@ -158,7 +158,7 @@ router.get('/cv', (req, res) => {
     }
 });
 
-async function cleanUpDirectory(req) {
+const cleanUpDirectory = async (req) => {
     setTimeout(function () {
         const fs = require("fs")
         const pathToFile = req.file.path
